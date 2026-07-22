@@ -1,0 +1,12 @@
+{
+  "name": "game-webtoon-village",
+  "version": "1.0.0",
+  "description": "게임&웹툰학과 마을 — 3D 멀티플레이 홈페이지 서버",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.17.0"
+  }
+}
