@@ -193,6 +193,47 @@
   @media (max-width:640px){ #btn-bgm { top:16px; } }
   body.intro #btn-bgm { display:none; }
 
+  /* ── 인스타그램 QR 팝업 ──────────────────── */
+  #insta-modal {
+    position:fixed; inset:0; z-index:45; display:none;
+    align-items:center; justify-content:center;
+    background:rgba(60,40,80,.45); padding:16px;
+  }
+  #insta-modal.open { display:flex; }
+  .insta-card {
+    background:#fff; border:3px solid #ffb3cf; border-radius:24px;
+    padding:26px 28px 22px; max-width:520px; width:100%;
+    text-align:center; box-shadow:0 16px 44px rgba(120,70,140,.35);
+    animation:titlePop .4s cubic-bezier(.2,1.6,.4,1) both;
+  }
+  .insta-card h3 { color:#ff6fa5; font-size:22px; margin-bottom:6px; }
+  .insta-card .notice {
+    color:#5a4a68; font-size:15px; line-height:1.6;
+    background:#fff2f7; border:1.5px dashed #ffb3cf; border-radius:14px;
+    padding:10px 14px; margin-bottom:18px;
+  }
+  .qr-row { display:flex; gap:18px; justify-content:center; flex-wrap:wrap; }
+  .qr-box {
+    background:#fdf8ff; border:2px solid #e8d8f4; border-radius:18px;
+    padding:14px 16px 12px; flex:1; min-width:180px; max-width:210px;
+  }
+  .qr-box .qr-title { font-size:16px; color:#5a4a68; margin-bottom:10px; }
+  .qr-box .qr-title.game { color:#5a8ae0; }
+  .qr-box .qr-title.toon { color:#e05a90; }
+  .qr-img { display:flex; justify-content:center; }
+  .qr-img img, .qr-img canvas { border-radius:8px; }
+  .qr-box .qr-web {
+    display:inline-block; margin-top:10px; font-size:13px; color:#8a63d2;
+    text-decoration:none; border:1.5px solid #cdb9ef; border-radius:999px; padding:4px 14px;
+  }
+  .qr-box .qr-web:hover { background:#f4eeff; }
+  #insta-close {
+    margin-top:18px; font-family:inherit; font-size:15px; cursor:pointer;
+    background:#ff9cc0; color:#fff; border:2.5px solid #fff; border-radius:999px;
+    padding:10px 36px; box-shadow:0 5px 0 #e05a90;
+  }
+  #insta-close:active { transform:translateY(3px); box-shadow:0 2px 0 #e05a90; }
+
 
   #loading {
     position:fixed; inset:0; z-index:50; background:linear-gradient(160deg, #ffeef5, #e8f3ff);
@@ -262,6 +303,26 @@
   <button class="emote-opt" data-e="2">👍</button>
   <button class="emote-opt" data-e="3">🎉</button>
   <button class="emote-opt" data-e="4">😢</button>
+</div>
+
+<div id="insta-modal">
+  <div class="insta-card">
+    <h3>📸 학과 인스타그램</h3>
+    <div class="notice">💡 <b>휴대폰 인스타그램 앱에서 열면 바로 보여요!</b><br>아래 QR코드를 휴대폰 카메라로 스캔해 주세요.</div>
+    <div class="qr-row">
+      <div class="qr-box">
+        <div class="qr-title game">🎮 게임 인스타</div>
+        <div class="qr-img" id="qr-game"></div>
+        <a class="qr-web" href="https://www.instagram.com/visual_game_contents/" target="_blank" rel="noopener">웹으로 열기</a>
+      </div>
+      <div class="qr-box">
+        <div class="qr-title toon">✏️ 웹툰 인스타</div>
+        <div class="qr-img" id="qr-toon"></div>
+        <a class="qr-web" href="https://www.instagram.com/webtoonsch/" target="_blank" rel="noopener">웹으로 열기</a>
+      </div>
+    </div>
+    <button id="insta-close">닫기</button>
+  </div>
 </div>
 
 <div id="chatbar">
@@ -337,6 +398,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 /* ══════════════════════════════════════════════════════════
    ★ 링크 설정 — 여기에 실제 메뉴 URL을 넣어주세요! ★
@@ -2186,7 +2248,7 @@ function openDialog(npc){
     const btn = document.createElement('button');
     btn.className = 'dlg-btn primary';
     btn.textContent = link.label;
-    btn.addEventListener('click', () => openLink(link.url));
+    btn.addEventListener('click', () => handleLink(link.url));
     dlgLinks.appendChild(btn);
   });
   dlgEl.classList.add('open');
@@ -2198,6 +2260,36 @@ function openLink(url){
   a.target = '_blank';
   a.rel = 'noopener';
   a.click();
+}
+
+/* ── 인스타그램 QR 팝업 (PC 전용) ── */
+const instaModal = document.getElementById('insta-modal');
+let qrBuilt = false;
+function openInstaModal(){
+  if (!qrBuilt && window.QRCode){
+    new QRCode(document.getElementById('qr-game'), {
+      text:'https://www.instagram.com/visual_game_contents/',
+      width:150, height:150, colorDark:'#4a3a5c', colorLight:'#ffffff',
+    });
+    new QRCode(document.getElementById('qr-toon'), {
+      text:'https://www.instagram.com/webtoonsch/',
+      width:150, height:150, colorDark:'#4a3a5c', colorLight:'#ffffff',
+    });
+    qrBuilt = true;
+  }
+  instaModal.classList.add('open');
+}
+function closeInstaModal(){ instaModal.classList.remove('open'); }
+document.getElementById('insta-close').addEventListener('click', closeInstaModal);
+instaModal.addEventListener('click', e => { if (e.target === instaModal) closeInstaModal(); });
+addEventListener('keydown', e => { if (e.key === 'Escape') closeInstaModal(); });
+
+function handleLink(url){
+  // 인스타그램 링크 + PC(비터치) 환경 → QR 팝업으로 안내
+  const isInsta = url.includes('instagram.com');
+  const isTouch = 'ontouchstart' in window;
+  if (isInsta && !isTouch) openInstaModal();
+  else openLink(url);   // 휴대폰에서는 앱/웹으로 바로 열림
 }
 function showLine(){
   const line = activeNpc.data.lines[dlgLine];
