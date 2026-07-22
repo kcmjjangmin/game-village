@@ -87,9 +87,16 @@
     background:rgba(255,255,255,.85); display:none; touch-action:none;
   }
   #btn-jump { right:26px; bottom:34px; }
-  #btn-talk { right:104px; bottom:70px; background:#ff9cc0; color:#fff; }
+  #btn-talk { right:104px; bottom:34px; background:#ff9cc0; color:#fff; }
   body.touch #joystick, body.touch #btn-jump { display:block; }
   body.touch #btn-talk.show { display:block; }
+  body.touch.chatting #joystick,
+  body.touch.chatting #btn-jump,
+  body.touch.chatting #btn-talk,
+  body.touch.chatting #btn-chat,
+  body.touch.chatting #btn-emote,
+  body.touch.chatting #btn-atk,
+  body.touch.chatting #chatlog { display:none !important; }
 
   /* ── 인트로 타이틀 화면 ──────────────────── */
   #intro {
@@ -150,9 +157,13 @@
   /* ── 채팅 & 감정표현 ────────────────────── */
   #chatbar {
     position:fixed; left:50%; bottom:30px; transform:translateX(-50%);
-    z-index:25; display:none; gap:8px; width:min(460px, calc(100% - 30px));
+    z-index:35; display:none; gap:8px; width:min(460px, calc(100% - 30px));
   }
   #chatbar.open { display:flex; }
+  body.touch #chatbar.open {
+    bottom:14px; width:calc(100% - 24px);
+    position:fixed;
+  }
   #chat-input {
     flex:1; font-family:inherit; font-size:16px; padding:12px 18px;
     border-radius:999px; border:2.5px solid #ffb3cf; outline:none;
@@ -167,10 +178,16 @@
   }
   #chat-send:active { transform:translateY(3px); box-shadow:0 1px 0 #e05a90; }
 
-  #btn-chat { right:26px; bottom:106px; }
-  #btn-emote { right:98px; bottom:26px; }
-  #btn-atk { right:26px; bottom:178px; background:rgba(255,214,102,.92); border-color:#ffd166; font-size:20px; }
+  #btn-atk {
+    right:24px; bottom:120px; width:78px; height:78px; font-size:30px;
+    background:rgba(255,138,120,.95); border:3px solid #fff; color:#fff;
+    box-shadow:0 5px 0 #d85a4a, 0 8px 16px rgba(255,120,90,.4);
+  }
+  #btn-atk:active { transform:translateY(4px); box-shadow:0 1px 0 #d85a4a; }
+  #btn-chat { right:104px; bottom:34px; }
+  #btn-emote { right:26px; bottom:214px; }
   body.touch #btn-chat, body.touch #btn-emote, body.touch #btn-atk { display:block; }
+  body.intro #btn-chat, body.intro #btn-emote, body.intro #btn-atk { display:none !important; }
 
   /* ── 레벨/경험치 바 ─────────────────────── */
   #hud-level { display:flex; align-items:center; gap:6px; margin-top:4px; font-size:13px; }
@@ -186,7 +203,7 @@
   }
   #lv-num { color:#a894b8; font-size:11px; }
   #emote-picker {
-    position:fixed; right:90px; bottom:96px; z-index:16; display:none; gap:4px;
+    position:fixed; right:80px; bottom:214px; z-index:16; display:none; gap:4px;
     background:rgba(255,255,255,.94); border:2.5px solid #ffb3cf;
     border-radius:999px; padding:6px 12px;
     box-shadow:0 6px 18px rgba(255,150,190,.3);
@@ -2322,13 +2339,30 @@ let chatCooldown = 0;
 function openChat(){
   if (introMode) return;
   chatBar.classList.add('open');
+  document.body.classList.add('chatting');
   chatInput.focus();
   for (const k in keys) keys[k] = false;   // 이동키 잔상 제거
+  liftChatBar();
 }
 function closeChat(){
   chatBar.classList.remove('open');
+  document.body.classList.remove('chatting');
   chatInput.value = '';
   chatInput.blur();
+  chatBar.style.bottom = '';
+}
+// 모바일 키보드가 올라오면 입력창을 그 위로 띄운다
+function liftChatBar(){
+  if (!('ontouchstart' in window) || !chatBar.classList.contains('open')) return;
+  const vv = window.visualViewport;
+  if (vv){
+    const gap = (window.innerHeight - vv.height - vv.offsetTop);   // 키보드 높이
+    chatBar.style.bottom = Math.max(14, gap + 12) + 'px';
+  }
+}
+if (window.visualViewport){
+  window.visualViewport.addEventListener('resize', liftChatBar);
+  window.visualViewport.addEventListener('scroll', liftChatBar);
 }
 function sendChat(){
   const msg = chatInput.value.trim().slice(0, 60);
@@ -2344,7 +2378,9 @@ function sendChat(){
   closeChat();
 }
 document.getElementById('chat-send').addEventListener('click', sendChat);
+document.getElementById('chat-send').addEventListener('touchstart', e => { e.preventDefault(); sendChat(); });
 document.getElementById('btn-chat').addEventListener('touchstart', e => { e.preventDefault(); openChat(); });
+document.getElementById('btn-chat').addEventListener('click', openChat);
 
 function doEmote(idx){
   if (introMode) return;
@@ -2876,6 +2912,7 @@ function doAttack(){
   });
 }
 document.getElementById('btn-atk').addEventListener('touchstart', e => { e.preventDefault(); doAttack(); });
+document.getElementById('btn-atk').addEventListener('click', doAttack);
 function showLine(){
   const line = activeNpc.data.lines[dlgLine];
   clearInterval(typing);
