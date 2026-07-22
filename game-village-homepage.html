@@ -32,7 +32,7 @@
 
   /* ── 대화 프롬프트 ───────────────────────── */
   #interact {
-    position:fixed; left:50%; bottom:150px; transform:translateX(-50%) scale(0);
+    position:fixed; left:50%; bottom:256px; transform:translateX(-50%) scale(0);
     z-index:11; transition:transform .18s ease;
     background:rgba(255,255,255,.92); border:2.5px solid #ff9cc0; border-radius:999px;
     color:#5a4a68; padding:9px 22px; font-size:16px;
@@ -169,7 +169,22 @@
 
   #btn-chat { right:26px; bottom:106px; }
   #btn-emote { right:98px; bottom:26px; }
-  body.touch #btn-chat, body.touch #btn-emote { display:block; }
+  #btn-atk { right:26px; bottom:178px; background:rgba(255,214,102,.92); border-color:#ffd166; font-size:20px; }
+  body.touch #btn-chat, body.touch #btn-emote, body.touch #btn-atk { display:block; }
+
+  /* ── 레벨/경험치 바 ─────────────────────── */
+  #hud-level { display:flex; align-items:center; gap:6px; margin-top:4px; font-size:13px; }
+  #lv-txt { color:#e8944a; font-weight:bold; }
+  .lv-bar {
+    display:inline-block; width:92px; height:10px; border-radius:999px;
+    background:#f0e6f5; border:1.5px solid #e0cdf0; overflow:hidden;
+  }
+  #lv-fill {
+    display:block; height:100%; width:0%; border-radius:999px;
+    background:linear-gradient(90deg, #ffd166, #ffab4a);
+    transition:width .3s ease;
+  }
+  #lv-num { color:#a894b8; font-size:11px; }
   #emote-picker {
     position:fixed; right:90px; bottom:96px; z-index:16; display:none; gap:4px;
     background:rgba(255,255,255,.94); border:2.5px solid #ffb3cf;
@@ -234,6 +249,59 @@
   }
   #insta-close:active { transform:translateY(3px); box-shadow:0 2px 0 #e05a90; }
 
+  /* ── 대화 목록 (메시지 입력창 바로 위) ──── */
+  #chatlog {
+    position:fixed; left:50%; transform:translateX(-50%); bottom:92px;
+    width:min(460px, calc(100% - 32px)); max-height:150px;
+    overflow-y:auto; z-index:14; display:flex; flex-direction:column; gap:3px;
+    scrollbar-width:thin; scrollbar-color:#ffb3cf transparent;
+  }
+  #chatlog .cl {
+    background:rgba(255,255,255,.8); border-radius:12px; padding:4px 12px;
+    font-size:13px; color:#4a3a5c; line-height:1.45; word-break:break-all;
+    flex-shrink:0;
+  }
+  #chatlog .cl b { margin-right:2px; }
+  #chatlog .cl.sys {
+    background:rgba(240,232,255,.78); color:#8a63d2;
+    font-size:12px; text-align:center;
+  }
+  body.intro #chatlog, body.dlg-open #chatlog { display:none; }
+  body.touch #chatlog { bottom:100px; width:min(320px, 56%); max-height:120px; }
+  body.touch #chatlog .cl { font-size:12px; }
+
+  /* ── 야외 갤러리 뷰어 ────────────────────── */
+  #gallery-modal {
+    position:fixed; inset:0; z-index:44; display:none;
+    align-items:center; justify-content:center;
+    background:rgba(60,40,80,.5); padding:14px;
+  }
+  #gallery-modal.open { display:flex; }
+  .gal-card {
+    background:#fff; border:3px solid #ffb3cf; border-radius:24px;
+    padding:20px 22px 18px; max-width:640px; width:100%; text-align:center;
+    box-shadow:0 16px 44px rgba(120,70,140,.35);
+    animation:titlePop .35s cubic-bezier(.2,1.6,.4,1) both;
+  }
+  .gal-card h3 { font-size:21px; margin-bottom:10px; color:#5a4a68; }
+  .gal-stage {
+    position:relative; background:#f6f0fa; border-radius:16px; overflow:hidden;
+    height:min(52vh, 420px); display:flex; align-items:center; justify-content:center;
+  }
+  #gal-img { max-width:100%; max-height:100%; display:block; }
+  .gal-empty { color:#a894b8; font-size:15px; padding:30px; line-height:1.8; }
+  .gal-nav {
+    position:absolute; top:50%; transform:translateY(-50%);
+    width:44px; height:44px; border-radius:50%; cursor:pointer;
+    border:2px solid #ffb3cf; background:rgba(255,255,255,.92);
+    font-size:17px; color:#ff6fa5; font-family:inherit; z-index:2;
+  }
+  .gal-nav:hover { background:#fff2f7; }
+  #gal-prev { left:10px; } #gal-next { right:10px; }
+  .gal-meta { margin-top:10px; font-size:14px; color:#5a4a68; min-height:20px; }
+  .gal-actions { display:flex; gap:10px; justify-content:center; margin-top:12px; flex-wrap:wrap; }
+  .gal-actions .dlg-btn { display:inline-block; }
+
 
   #loading {
     position:fixed; inset:0; z-index:50; background:linear-gradient(160deg, #ffeef5, #e8f3ff);
@@ -269,11 +337,12 @@
       <h1>게임&웹툰학과 마을</h1>
       <p>NPC 친구들에게 다가가 학과 메뉴를 확인해 보세요!</p>
       <p style="margin-top:2px;"><span id="hud-time" style="color:#e8944a;">☀️ 낮의 마을</span> · <span id="hud-count" style="color:#8a63d2;">👥 접속자 1명</span></p>
+      <p id="hud-level"><span id="lv-txt">Lv.1</span><span class="lv-bar"><span id="lv-fill"></span></span><span id="lv-num">0 / 30</span></p>
     </div>
   </div>
 </div>
 <div id="hud-help">
-  <b>W A S D / 방향키</b> 이동 &nbsp;·&nbsp; <b>Shift</b> 달리기 &nbsp;·&nbsp; <b>Space</b> 점프<br>
+  <b>W A S D / 방향키</b> 이동 &nbsp;·&nbsp; <b>Shift</b> 달리기 &nbsp;·&nbsp; <b>Space</b> 점프 &nbsp;·&nbsp; <b>F</b> 공격<br>
   <b>E</b> 대화 &nbsp;·&nbsp; <b>Enter</b> 채팅 &nbsp;·&nbsp; <b>1~5</b> 감정표현 &nbsp;·&nbsp; <b>마우스 드래그</b> 시점 회전
 </div>
 
@@ -296,6 +365,7 @@
 <button id="btn-talk">대화</button>
 <button id="btn-chat">💬</button>
 <button id="btn-emote">😊</button>
+<button id="btn-atk">⚔️</button>
 <button id="btn-bgm">🔊</button>
 <div id="emote-picker">
   <button class="emote-opt" data-e="0">❤️</button>
@@ -322,6 +392,26 @@
       </div>
     </div>
     <button id="insta-close">닫기</button>
+  </div>
+</div>
+
+<div id="chatlog"></div>
+
+<div id="gallery-modal">
+  <div class="gal-card">
+    <h3 id="gal-title">🎮 게임 갤러리</h3>
+    <div class="gal-stage">
+      <img id="gal-img" alt="작품">
+      <div class="gal-empty" id="gal-empty" style="display:none;"></div>
+      <button class="gal-nav" id="gal-prev">◀</button>
+      <button class="gal-nav" id="gal-next">▶</button>
+    </div>
+    <div class="gal-meta" id="gal-meta"></div>
+    <div class="gal-actions">
+      <label class="dlg-btn primary" for="gal-file" style="cursor:pointer;">📤 내 그림 올리기</label>
+      <input type="file" id="gal-file" accept="image/*" style="display:none;">
+      <button class="dlg-btn" id="gal-close">닫기 (ESC)</button>
+    </div>
   </div>
 </div>
 
@@ -488,6 +578,7 @@ const NAME_NOUN = ['감자','슬라임','고양이','토끼','픽셀','드래곤
 const HAIR_COLORS = [0x8a5a3a, 0x3a3a4a, 0xffd166, 0xff8fb0, 0xb08ae0, 0x6fa8ff, 0x4aa8a4, 0xe8944a, 0xf0f0f0, 0x6ab868];
 const SHIRT_COLORS = [0x8ab8ff, 0xff9cc0, 0xffc46b, 0x8ed08a, 0x7fd8d4, 0xc9a8ff, 0xff8f7a, 0xffe27a, 0x9adcff, 0xf0a8d8];
 const CAPE_COLORS = [0xff7a8a, 0x6fa8ff, 0xffd166, 0x8fdc7e, 0xb08ae0, 0x5ad8c8, 0xff9f6b, 0x7a8aff];
+const SWORD_COLORS = [0x9adcff, 0xffd166, 0xff8fb0, 0xc9a8ff, 0x8fdc7e, 0xff7a5a, 0xbfe8ff, 0x8a9aff];
 const EYE_COLORS = [0x5a4a8a, 0x4a7ac8, 0x3a8a5a, 0xa85a8a, 0x8a6a3a];
 const randPick = a => a[Math.floor(Math.random()*a.length)];
 const myProfile = {
@@ -495,6 +586,7 @@ const myProfile = {
   hair: randPick(HAIR_COLORS),
   shirt: randPick(SHIRT_COLORS),
   cape: randPick(CAPE_COLORS),
+  sword: randPick(SWORD_COLORS),
   eye: randPick(EYE_COLORS),
 };
 
@@ -615,6 +707,7 @@ const GRAD = (() => {
   return tex;
 })();
 const M = (c, opt={}) => new THREE.MeshToonMaterial(Object.assign({ color:c, gradientMap:GRAD }, opt));
+const WHITE_C = new THREE.Color(0xffffff);
 const GLOW = (c, e, i=0.7) => new THREE.MeshStandardMaterial({ color:c, emissive:e, emissiveIntensity:i, roughness:.4 });
 
 /* ── 캐릭터 외곽선 (애니메이션풍 잉크 라인) ── */
@@ -1012,6 +1105,71 @@ function makeWindmill(){
   g.add(hub);
   g.userData.hub = hub;
   return g;
+}
+
+/* ══════════ 👾 슬라임 몬스터 (마을 외곽 사냥터) ══════════ */
+const slimes = [];
+function makeSlime(color){
+  const g = new THREE.Group();
+  const bodyMat = M(color);
+  const body = outline(new THREE.Mesh(new THREE.SphereGeometry(0.48, 12, 10), bodyMat), 1.07);
+  body.scale.set(1, 0.78, 1);
+  body.position.y = 0.38;
+  body.castShadow = true;
+  g.add(body);
+  // 젤리 꼭지
+  const tip = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.22, 8), bodyMat);
+  tip.position.y = 0.78;
+  tip.rotation.z = 0.25;
+  g.add(tip);
+  // 눈 + 하이라이트
+  [-0.16, 0.16].forEach(x => {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), new THREE.MeshBasicMaterial({ color:0x2a2038 }));
+    eye.scale.set(0.85, 1.25, 0.5);
+    eye.position.set(x, 0.44, 0.4);
+    g.add(eye);
+    const shine = new THREE.Mesh(new THREE.SphereGeometry(0.022, 5, 4), new THREE.MeshBasicMaterial({ color:0xffffff }));
+    shine.position.set(x + 0.025, 0.48, 0.44);
+    g.add(shine);
+  });
+  // 미소
+  const smile = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.014, 5, 10, Math.PI), new THREE.MeshBasicMaterial({ color:0x2a2038 }));
+  smile.position.set(0, 0.35, 0.44);
+  smile.rotation.z = Math.PI;
+  g.add(smile);
+  // 볼터치
+  [-0.28, 0.28].forEach(x => {
+    const cheek = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 5), new THREE.MeshBasicMaterial({ color:0xffb3a8, transparent:true, opacity:0.8 }));
+    cheek.scale.set(1, 0.6, 0.3);
+    cheek.position.set(x, 0.36, 0.4);
+    g.add(cheek);
+  });
+  return { g, bodyMat, body };
+}
+const SLIME_COLORS = [0x9adcff, 0xa8e59a, 0xffc2dd, 0xc9a8ff, 0xffe27a, 0xffab7a];
+function slimeSpawnSpot(){
+  for (let tries=0; tries<12; tries++){
+    const a = Math.random()*Math.PI*2;
+    const d = 27 + Math.random()*11;
+    const x = Math.cos(a)*d, z = Math.sin(a)*d;
+    if (Math.hypot(x+28, z+22) < 5) continue;   // 풍차 피하기
+    return [x, z];
+  }
+  return [30, 0];
+}
+for (let i=0; i<9; i++){
+  const color = SLIME_COLORS[i % SLIME_COLORS.length];
+  const s = makeSlime(color);
+  const [sx, sz] = slimeSpawnSpot();
+  s.g.position.set(sx, 0, sz);
+  scene.add(s.g);
+  slimes.push({
+    g:s.g, bodyMat:s.bodyMat, body:s.body, baseColor:new THREE.Color(color),
+    hp:3, maxHp:3,
+    tx:sx, tz:sz, retarget:Math.random()*4,
+    phase:Math.random()*10, alive:true, deadT:0, respawn:0,
+    flash:0, kx:0, kz:0,
+  });
 }
 
 /* ══════════════════ 캐주얼 코티지 하우스 ══════════════════ */
@@ -1437,6 +1595,42 @@ function makeCharacter(opt){
       pad.position.set(x, 1.48 - 1.12, 0);
       bodyG.add(pad);
     });
+    // ⚔️ 판타지 검 (오른손에 장착, 칼날 색은 플레이어마다 랜덤)
+    const bladeC = opt.swordColor || 0x9adcff;
+    const sword = new THREE.Group();
+    const grip = outline(new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.042, 0.24, 7), M(0x7a5a48)), 1.15);
+    sword.add(grip);
+    const pommel = new THREE.Mesh(new THREE.SphereGeometry(0.055, 7, 6), M(0xffd166));
+    pommel.position.y = 0.16;
+    sword.add(pommel);
+    const guard = outline(new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.055, 0.08), M(0xffd166)), 1.1);
+    guard.position.y = -0.13;
+    sword.add(guard);
+    [-0.13, 0.13].forEach(x => {
+      const gTip = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 5), M(0xffd166));
+      gTip.position.set(x, -0.13, 0);
+      sword.add(gTip);
+    });
+    const blade = outline(new THREE.Mesh(new THREE.BoxGeometry(0.095, 0.72, 0.035),
+      GLOW(bladeC, bladeC, 0.35)), 1.09);
+    blade.position.y = -0.52;
+    blade.castShadow = true;
+    sword.add(blade);
+    const ridge = new THREE.Mesh(new THREE.BoxGeometry(0.028, 0.68, 0.042), M(0xffffff));
+    ridge.position.y = -0.52;
+    sword.add(ridge);
+    const bladeTip = new THREE.Mesh(new THREE.ConeGeometry(0.058, 0.17, 4), GLOW(bladeC, bladeC, 0.35));
+    bladeTip.rotation.x = Math.PI;
+    bladeTip.rotation.y = Math.PI/4;
+    bladeTip.position.y = -0.95;
+    sword.add(bladeTip);
+    const gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.045, 0), GLOW(bladeC, bladeC, 0.9));
+    gem.position.set(0, -0.13, 0.05);
+    sword.add(gem);
+    sword.position.set(0.02, -0.5, 0.06);
+    sword.rotation.x = -0.35;
+    parts.armR.add(sword);
+    parts.sword = sword;
   }
   g.parts = parts;
   return g;
@@ -1578,6 +1772,85 @@ signpost.position.set(2.8, 0.1, 6.4);
 scene.add(signpost);
 addCollider(2.8, 6.4, 0.35);
 
+/* ══════════ 🖼️ 야외 갤러리 (게임/웹툰 작품 전시) ══════════ */
+const GALLERY_ZONES = {
+  game: { x:-9.5, z:19.5, title:'🎮 게임 갤러리', accent:0x6fa8ff, colorHex:'#5a8ae0', plac:null },
+  toon: { x: 9.5, z:19.5, title:'✏️ 웹툰 갤러리', accent:0xff9cc0, colorHex:'#e05a90', plac:null },
+};
+const galleryFrameMats = { game:[], toon:[] };
+const FRAME_ASPECT = 2.1 / 1.45;
+
+function makePlaceholderTex(colorHex){
+  const cv = document.createElement('canvas');
+  cv.width = 512; cv.height = 354;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#fdf8ff';
+  ctx.fillRect(0, 0, 512, 354);
+  ctx.strokeStyle = colorHex; ctx.lineWidth = 6;
+  ctx.setLineDash([14, 10]);
+  roundRect(ctx, 18, 18, 476, 318, 22); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#a894b8';
+  ctx.font = 'bold 34px Jua, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('작품을 기다리고 있어요', 256, 165);
+  ctx.font = '52px sans-serif';
+  ctx.fillText('🎨', 256, 235);
+  return new THREE.CanvasTexture(cv);
+}
+function makeGalleryFrame(accent, placTex){
+  const g = new THREE.Group();
+  [-0.95, 0.95].forEach(x => {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 1.15, 7), M(0xa9795a));
+    leg.position.set(x, 0.57, 0);
+    leg.castShadow = true;
+    g.add(leg);
+  });
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.85, 0.12), M(0xb98a5f));
+  frame.position.y = 1.85; frame.castShadow = true;
+  g.add(frame);
+  const inner = new THREE.Mesh(new THREE.BoxGeometry(2.3, 1.65, 0.13), M(0xfff6e8));
+  inner.position.set(0, 1.85, 0.005);
+  g.add(inner);
+  const mat = new THREE.MeshBasicMaterial({ map: placTex });
+  const pic = new THREE.Mesh(new THREE.PlaneGeometry(2.1, 1.45), mat);
+  pic.position.set(0, 1.85, 0.075);
+  g.add(pic);
+  // 모서리 장식 구슬
+  [[-1.18, 0.85], [1.18, 0.85], [-1.18, -0.85], [1.18, -0.85]].forEach(([x, dy]) => {
+    const orb = new THREE.Mesh(new THREE.SphereGeometry(0.09, 7, 6), M(accent));
+    orb.position.set(x, 1.85 + dy, 0.07);
+    g.add(orb);
+  });
+  return { g, mat };
+}
+Object.entries(GALLERY_ZONES).forEach(([key, zone]) => {
+  const len = Math.hypot(zone.x, zone.z);
+  const ux = -zone.x/len, uz = -zone.z/len;          // 광장(중앙) 방향
+  const ry = Math.atan2(-zone.x, -zone.z);
+  zone.plac = makePlaceholderTex(zone.colorHex);
+  [-2.7, 0, 2.7].forEach(off => {
+    const fx = zone.x + (-uz)*off;
+    const fz = zone.z + ( ux)*off;
+    const f = makeGalleryFrame(zone.accent, zone.plac);
+    f.g.position.set(fx, 0.05, fz);
+    f.g.rotation.y = ry;
+    scene.add(f.g);
+    addCollider(fx, fz, 0.85);
+    galleryFrameMats[key].push(f.mat);
+  });
+  // 갤러리 팻말 (작은 기둥 + 보드)
+  const signG = new THREE.Group();
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 1.5, 7), M(0xa9795a));
+  pole.position.y = 0.75; signG.add(pole);
+  const board = makeSignBoard(zone.title, zone.colorHex);
+  board.position.y = 1.35;
+  signG.add(board);
+  signG.position.set(zone.x + ux*3.2, 0.08, zone.z + uz*3.2);
+  signG.rotation.y = ry;
+  scene.add(signG);
+});
+
 // 🎏 광장 가랜드 깃발 (가로등 사이)
 (function buildGarlands(){
   const flagCols = [0xff9cc0, 0xffd166, 0x8ab8ff, 0x8fdc7e, 0xc9a8ff];
@@ -1708,7 +1981,7 @@ for (let i=0; i<4; i++){
   scene.add(pl);
   lampLights.push(pl);
 }
-[[-8, 20, 0.4], [8, 20, -0.4], [22, 2, 1.2], [-22, 2, -1.2]].forEach(([x, z, rot]) => {
+[[22, 2, 1.2], [-22, 2, -1.2]].forEach(([x, z, rot]) => {
   const f = makeFence(6);
   f.position.set(x, 0.05, z);
   f.rotation.y = rot;
@@ -1793,16 +2066,24 @@ function makeNameTag(name, colorNum){
   return sp;
 }
 
+/* ══════════════════ 레벨/경험치 상태 ══════════════════ */
+let myLv = 1, myExp = 0;
+try {
+  const sv = JSON.parse(localStorage.getItem('gv-level') || '{}');
+  if (sv.lv >= 1){ myLv = sv.lv | 0; myExp = Math.max(0, sv.exp | 0); }
+} catch {}
+const expNext = l => Math.floor(30 * Math.pow(1.35, l - 1));
+
 /* ══════════════════ 플레이어 ══════════════════ */
 const player = makeCharacter({
   shirt: myProfile.shirt, pants:0xfdf3e3, shoe:0x7a5a48,
   hairColor: myProfile.hair, eyeColor: myProfile.eye,
-  capeColor: myProfile.cape, hat:'hero',
+  capeColor: myProfile.cape, swordColor: myProfile.sword, hat:'hero',
 });
 player.position.set(0, 0, 8);
 scene.add(player);
 
-const myLabel = makeNameTag(myProfile.name, myProfile.shirt);
+let myLabel = makeNameTag(`Lv.${myLv} ${myProfile.name}`, myProfile.shirt);
 scene.add(myLabel);
 
 const pState = {
@@ -1835,16 +2116,21 @@ function addRemote(id, prof, state){
   const mesh = makeCharacter({
     shirt: prof.shirt || 0x8ab8ff, pants:0xfdf3e3, shoe:0x7a5a48,
     hairColor: prof.hair || 0x8a5a3a, eyeColor: prof.eye || 0x5a4a8a,
-    capeColor: prof.cape || 0xff7a8a, hat:'hero',
+    capeColor: prof.cape || 0xff7a8a, swordColor: prof.sword || 0x9adcff, hat:'hero',
   });
   const sx = state ? state.x : 0, sz = state ? state.z : 8;
   mesh.position.set(sx, state ? state.y : 0, sz);
   mesh.rotation.y = state ? state.ry : Math.PI;
   scene.add(mesh);
-  const tag = makeNameTag(prof.name || '모험가', prof.shirt || 0x8ab8ff);
+  const lv0 = (state && state.lv) ? state.lv : 1;
+  const tag = makeNameTag(`Lv.${lv0} ${prof.name || '모험가'}`, prof.shirt || 0x8ab8ff);
   scene.add(tag);
   remotes.set(id, {
     mesh, tag,
+    name: prof.name || '모험가',
+    shirtNum: prof.shirt || 0x8ab8ff,
+    lv: lv0,
+    colorHex: '#' + (prof.shirt || 0x8a63d2).toString(16).padStart(6, '0'),
     tx:sx, ty:(state ? state.y : 0), tz:sz, tr:(state ? state.ry : Math.PI),
     moving:false, running:false, phase:Math.random()*10,
   });
@@ -1853,6 +2139,7 @@ function addRemote(id, prof, state){
 function removeRemote(id){
   const r = remotes.get(id);
   if (!r) return;
+  addChatLog(null, `${r.name}님이 마을을 떠났어요 👋`, null, true);
   const b = bubbles.get(r.mesh);
   if (b){ scene.remove(b.sprite); bubbles.delete(r.mesh); }
   for (let i = activeEmotes.length - 1; i >= 0; i--){
@@ -1873,20 +2160,42 @@ function connectMultiplayer(){
       myId = m.id;
       Object.keys(m.players).forEach(pid => addRemote(+pid, m.players[pid].p, m.players[pid].s));
       updateCount();
+      addChatLog(null, '🌸 마을에 접속했어요! Enter로 인사해 보세요', null, true);
     } else if (m.t === 'join'){
       addRemote(m.id, m.p, null);
+      addChatLog(null, `${(m.p && m.p.name) || '모험가'}님이 마을에 왔어요 👋`, null, true);
     } else if (m.t === 's'){
       const r = remotes.get(m.id);
       if (r){
         r.tx = m.x; r.ty = m.y; r.tz = m.z; r.tr = m.ry;
         r.moving = !!m.m; r.running = !!m.r;
+        const lv = m.lv | 0;
+        if (lv >= 1 && lv !== r.lv){
+          r.lv = lv;
+          scene.remove(r.tag);
+          r.tag = makeNameTag(`Lv.${lv} ${r.name}`, r.shirtNum);
+          scene.add(r.tag);
+        }
       }
     } else if (m.t === 'chat'){
       const r = remotes.get(m.id);
-      if (r) showBubble(r.mesh, String(m.msg || '').slice(0, 60));
+      if (r){
+        const msg = String(m.msg || '').slice(0, 60);
+        showBubble(r.mesh, msg);
+        addChatLog(r.name, msg, r.colorHex, false);
+      }
     } else if (m.t === 'emote'){
       const r = remotes.get(m.id);
       if (r) spawnEmote(r.mesh, m.e | 0);
+    } else if (m.t === 'gimg'){
+      const arr = galState.items[m.g];
+      if (arr && m.item && !arr.find(it => it.id === m.item.id)){
+        arr.push(m.item);
+        if (arr.length > 60) arr.shift();
+        updateFrames(m.g);
+        if (galState.open === m.g){ galState.idx = arr.length - 1; renderGallery(); }
+        addChatLog(null, `🎨 ${m.item.name}님이 ${m.g === 'game' ? '게임' : '웹툰'} 갤러리에 새 작품을 올렸어요!`, null, true);
+      }
     } else if (m.t === 'leave'){
       removeRemote(m.id);
     }
@@ -1909,7 +2218,7 @@ setInterval(() => {
       y:+player.position.y.toFixed(2),
       z:+player.position.z.toFixed(2),
       ry:+pState.facing.toFixed(2),
-      m:pState.moving, r:pState.running,
+      m:pState.moving, r:pState.running, lv:myLv,
     }));
   }
 }, 100);
@@ -1985,6 +2294,26 @@ function spawnEmote(mesh, idx){
   activeEmotes.push({ sp, mesh, start: clock.elapsedTime });
 }
 
+/* ── 대화 목록 ── */
+const chatlogEl = document.getElementById('chatlog');
+function addChatLog(name, msg, colorHex, isSys){
+  const d = document.createElement('div');
+  d.className = 'cl' + (isSys ? ' sys' : '');
+  if (isSys){
+    d.textContent = msg;
+  } else {
+    const b = document.createElement('b');
+    b.textContent = name + ': ';
+    b.style.color = colorHex || '#8a63d2';
+    d.appendChild(b);
+    d.appendChild(document.createTextNode(msg));
+  }
+  chatlogEl.appendChild(d);
+  while (chatlogEl.children.length > 50) chatlogEl.removeChild(chatlogEl.firstChild);
+  chatlogEl.scrollTop = chatlogEl.scrollHeight;
+}
+const myColorHex = '#' + myProfile.shirt.toString(16).padStart(6, '0');
+
 /* ── 채팅 UI ── */
 const chatBar = document.getElementById('chatbar');
 const chatInput = document.getElementById('chat-input');
@@ -2008,6 +2337,7 @@ function sendChat(){
     if (now - chatCooldown > 600){
       chatCooldown = now;
       showBubble(player, msg);
+      addChatLog(myProfile.name, msg, myColorHex, false);
       if (ws && ws.readyState === 1) ws.send(JSON.stringify({ t:'chat', msg }));
     }
   }
@@ -2155,10 +2485,17 @@ addEventListener('keydown', e => {
     e.stopPropagation();
     return;
   }
+  if (galleryOpen){
+    if (e.code === 'ArrowLeft') galNav(-1);
+    if (e.code === 'ArrowRight') galNav(1);
+    if (e.code === 'Escape') closeGallery();
+    return;
+  }
   keys[e.code] = true;
   if (introMode && (e.code === 'Enter' || e.code === 'Space')){ startGame(); e.preventDefault(); return; }
   if (e.code === 'Enter' && !activeNpc){ openChat(); e.preventDefault(); return; }
   if (e.code === 'KeyE') tryInteract();
+  if (e.code === 'KeyF') doAttack();
   if (e.code === 'Escape') closeDialog();
   if (/^Digit[1-5]$/.test(e.code) && !activeNpc) doEmote(+e.code.slice(5) - 1);
   if (e.code === 'Space') e.preventDefault();
@@ -2230,10 +2567,13 @@ const dlgText = document.getElementById('dlg-text');
 const interactEl = document.getElementById('interact');
 const talkBtn = document.getElementById('btn-talk');
 let nearNpc = null, activeNpc = null, dlgLine = 0, typing = null;
+let nearGallery = null, galleryOpen = false;
 
 function tryInteract(){
   if (activeNpc){ nextLine(); return; }
-  if (nearNpc) openDialog(nearNpc);
+  if (galleryOpen) return;
+  if (nearNpc){ openDialog(nearNpc); return; }
+  if (nearGallery) openGallery(nearGallery);
 }
 const dlgLinks = document.getElementById('dlg-links');
 
@@ -2252,6 +2592,7 @@ function openDialog(npc){
     dlgLinks.appendChild(btn);
   });
   dlgEl.classList.add('open');
+  document.body.classList.add('dlg-open');
   showLine();
 }
 function openLink(url){
@@ -2291,6 +2632,250 @@ function handleLink(url){
   if (isInsta && !isTouch) openInstaModal();
   else openLink(url);   // 휴대폰에서는 앱/웹으로 바로 열림
 }
+
+/* ══════════════════ 갤러리 로직 (조회·전시·업로드) ══════════════════ */
+const galState = { open:null, idx:0, items:{ game:[], toon:[] }, uploading:false };
+const galModal = document.getElementById('gallery-modal');
+const galTitle = document.getElementById('gal-title');
+const galImg = document.getElementById('gal-img');
+const galEmpty = document.getElementById('gal-empty');
+const galMeta = document.getElementById('gal-meta');
+const galFile = document.getElementById('gal-file');
+const texLoader = new THREE.TextureLoader();
+
+function updateFrames(g){
+  const zone = GALLERY_ZONES[g];
+  const mats = galleryFrameMats[g];
+  const latest = galState.items[g].slice(-3).reverse();   // 최신작이 가운데→양옆 순
+  mats.forEach((mat, i) => {
+    const item = latest[i];
+    if (!item){
+      mat.map = zone.plac;
+      mat.needsUpdate = true;
+      return;
+    }
+    texLoader.load(item.url, tex => {
+      // 액자 비율에 맞춰 중앙 크롭
+      const img = tex.image;
+      const ia = img.width / img.height;
+      if (ia > FRAME_ASPECT){
+        tex.repeat.set(FRAME_ASPECT/ia, 1);
+        tex.offset.set((1 - FRAME_ASPECT/ia)/2, 0);
+      } else {
+        tex.repeat.set(1, ia/FRAME_ASPECT);
+        tex.offset.set(0, (1 - ia/FRAME_ASPECT)/2);
+      }
+      mat.map = tex;
+      mat.needsUpdate = true;
+    });
+  });
+}
+async function fetchGallery(g){
+  if (!location.host) return;
+  try {
+    const res = await fetch('/api/gallery?g=' + g);
+    const data = await res.json();
+    galState.items[g] = data.items || [];
+    updateFrames(g);
+    if (galState.open === g) renderGallery();
+  } catch(e){ /* 서버 없으면 조용히 패스 */ }
+}
+fetchGallery('game');
+fetchGallery('toon');
+
+function renderGallery(){
+  const g = galState.open;
+  if (!g) return;
+  const zone = GALLERY_ZONES[g];
+  galTitle.textContent = zone.title;
+  galTitle.style.color = zone.colorHex;
+  const items = galState.items[g];
+  if (!location.host){
+    galImg.style.display = 'none';
+    galEmpty.style.display = 'block';
+    galEmpty.innerHTML = '갤러리는 서버 배포 후 이용할 수 있어요 ☁️';
+    galMeta.textContent = '';
+    return;
+  }
+  if (items.length === 0){
+    galImg.style.display = 'none';
+    galEmpty.style.display = 'block';
+    galEmpty.innerHTML = '아직 전시된 작품이 없어요!<br>첫 작품의 주인공이 되어보세요 🎨';
+    galMeta.textContent = '';
+    return;
+  }
+  galState.idx = Math.max(0, Math.min(items.length - 1, galState.idx));
+  const item = items[galState.idx];
+  galEmpty.style.display = 'none';
+  galImg.style.display = 'block';
+  galImg.src = item.url;
+  galMeta.textContent = `🖌️ ${item.name} · ${galState.idx + 1} / ${items.length}`;
+}
+function openGallery(g){
+  galState.open = g;
+  galState.idx = galState.items[g].length - 1;
+  galleryOpen = true;
+  for (const k in keys) keys[k] = false;
+  renderGallery();
+  galModal.classList.add('open');
+}
+function closeGallery(){
+  galState.open = null;
+  galleryOpen = false;
+  galModal.classList.remove('open');
+}
+function galNav(dir){
+  const items = galState.items[galState.open];
+  if (!items || items.length === 0) return;
+  galState.idx = (galState.idx + dir + items.length) % items.length;
+  renderGallery();
+}
+document.getElementById('gal-prev').addEventListener('click', () => galNav(-1));
+document.getElementById('gal-next').addEventListener('click', () => galNav(1));
+document.getElementById('gal-close').addEventListener('click', closeGallery);
+galModal.addEventListener('click', e => { if (e.target === galModal) closeGallery(); });
+
+// 📤 업로드: 클라이언트에서 리사이즈 → 서버 전송 → 전체 공유
+galFile.addEventListener('change', () => {
+  const file = galFile.files[0];
+  galFile.value = '';
+  if (!file || !galState.open || galState.uploading) return;
+  if (!location.host){ galMeta.textContent = '서버 배포 후 업로드할 수 있어요 ☁️'; return; }
+  if (file.size > 15e6){ galMeta.textContent = '⚠️ 15MB 이하 이미지만 올릴 수 있어요'; return; }
+  const g = galState.open;
+  galState.uploading = true;
+  galMeta.textContent = '📤 업로드 중...';
+  const img = new Image();
+  img.onload = async () => {
+    URL.revokeObjectURL(img.src);
+    // 최대 1280px로 축소 + JPEG 압축
+    const maxSide = 1280;
+    const sc = Math.min(1, maxSide / Math.max(img.width, img.height));
+    const cv = document.createElement('canvas');
+    cv.width = Math.round(img.width * sc);
+    cv.height = Math.round(img.height * sc);
+    const ctx = cv.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.drawImage(img, 0, 0, cv.width, cv.height);
+    const dataUrl = cv.toDataURL('image/jpeg', 0.85);
+    try {
+      const res = await fetch('/api/upload', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ g, name: myProfile.name, data: dataUrl }),
+      });
+      const out = await res.json();
+      if (out.ok && out.item){
+        const arr = galState.items[g];
+        if (!arr.find(it => it.id === out.item.id)){
+          arr.push(out.item);
+          if (arr.length > 60) arr.shift();
+          updateFrames(g);
+        }
+        galState.idx = arr.length - 1;
+        renderGallery();
+        galMeta.textContent = '✅ 작품이 전시되었어요! ' + galMeta.textContent;
+      } else {
+        galMeta.textContent = '⚠️ 업로드에 실패했어요. 다시 시도해 주세요';
+      }
+    } catch(e){
+      galMeta.textContent = '⚠️ 서버에 연결할 수 없어요';
+    }
+    galState.uploading = false;
+  };
+  img.onerror = () => { galState.uploading = false; galMeta.textContent = '⚠️ 이미지를 읽을 수 없어요'; };
+  img.src = URL.createObjectURL(file);
+});
+
+/* ══════════════════ ⚔️ 전투 & 레벨업 ══════════════════ */
+const floatTexts = [];
+function makeFloatSprite(text, color){
+  const cv = document.createElement('canvas');
+  cv.width = 300; cv.height = 96;
+  const ctx = cv.getContext('2d');
+  ctx.font = 'bold 52px Jua, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.lineWidth = 9; ctx.strokeStyle = '#ffffff';
+  ctx.strokeText(text, 150, 64);
+  ctx.fillStyle = color;
+  ctx.fillText(text, 150, 64);
+  const tex = new THREE.CanvasTexture(cv);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, transparent:true, depthTest:false }));
+  sp.scale.set(1.9, 0.6, 1);
+  return sp;
+}
+function floatText(pos, text, color, scale = 1){
+  const sp = makeFloatSprite(text, color);
+  sp.scale.multiplyScalar(scale);
+  sp.position.set(pos.x, (pos.y || 0) + 1.5, pos.z);
+  scene.add(sp);
+  floatTexts.push({ sp, start: clock.elapsedTime });
+}
+const levelRings = [];
+function spawnLevelRing(){
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.07, 8, 26),
+    new THREE.MeshBasicMaterial({ color:0xffd166, transparent:true, opacity:0.95 }));
+  ring.rotation.x = Math.PI/2;
+  ring.position.set(player.position.x, player.position.y + 0.15, player.position.z);
+  scene.add(ring);
+  levelRings.push({ ring, start: clock.elapsedTime });
+}
+function updateLevelHUD(){
+  document.getElementById('lv-txt').textContent = 'Lv.' + myLv;
+  document.getElementById('lv-num').textContent = `${myExp} / ${expNext(myLv)}`;
+  document.getElementById('lv-fill').style.width = Math.min(100, myExp / expNext(myLv) * 100) + '%';
+}
+function refreshMyTag(){
+  scene.remove(myLabel);
+  myLabel = makeNameTag(`Lv.${myLv} ${myProfile.name}`, myProfile.shirt);
+  scene.add(myLabel);
+}
+function gainExp(n){
+  myExp += n;
+  let leveled = false;
+  while (myExp >= expNext(myLv)){ myExp -= expNext(myLv); myLv++; leveled = true; }
+  if (leveled){
+    floatText(player.position, `⭐ LEVEL UP! Lv.${myLv}`, '#ffab20', 1.5);
+    spawnLevelRing();
+    spawnEmote(player, 3);   // 🎉
+    refreshMyTag();
+    addChatLog(null, `⭐ 레벨 업! Lv.${myLv} 달성!`, null, true);
+  }
+  updateLevelHUD();
+  try { localStorage.setItem('gv-level', JSON.stringify({ lv: myLv, exp: myExp })); } catch {}
+}
+updateLevelHUD();
+
+let atkCd = 0;
+function doAttack(){
+  if (introMode || activeNpc || galleryOpen) return;
+  const now = performance.now();
+  if (now - atkCd < 450) return;
+  atkCd = now;
+  pState.attackT = 0.3;
+  const fx = Math.sin(pState.facing), fz = Math.cos(pState.facing);
+  slimes.forEach(s => {
+    if (!s.alive) return;
+    const dx = s.g.position.x - player.position.x;
+    const dz = s.g.position.z - player.position.z;
+    const d = Math.hypot(dx, dz);
+    if (d > 2.2) return;
+    if ((dx*fx + dz*fz) / (d || 1) < 0.2) return;   // 전방 부채꼴만
+    s.hp--;
+    s.flash = 1;
+    s.kx = dx/(d||1) * 5; s.kz = dz/(d||1) * 5;
+    if (s.hp <= 0){
+      s.alive = false; s.deadT = 0; s.respawn = 6 + Math.random()*5;
+      const exp = 10 + Math.floor(Math.random()*6);
+      floatText(s.g.position, `+${exp} EXP`, '#e8a020', 1.15);
+      gainExp(exp);
+    } else {
+      floatText(s.g.position, '-1', '#ff6b8a', 0.85);
+    }
+  });
+}
+document.getElementById('btn-atk').addEventListener('touchstart', e => { e.preventDefault(); doAttack(); });
 function showLine(){
   const line = activeNpc.data.lines[dlgLine];
   clearInterval(typing);
@@ -2310,6 +2895,7 @@ function closeDialog(){
   activeNpc = null;
   clearInterval(typing);
   dlgEl.classList.remove('open');
+  document.body.classList.remove('dlg-open');
 }
 document.getElementById('dlg-close').addEventListener('click', closeDialog);
 dlgText.addEventListener('click', nextLine);
@@ -2340,7 +2926,7 @@ function animate(){
 
   /* ── 이동 ── */
   let ix = 0, iz = 0;
-  if (!activeNpc && !introMode){
+  if (!activeNpc && !introMode && !galleryOpen){
     if (keys['KeyW'] || keys['ArrowUp']) iz -= 1;
     if (keys['KeyS'] || keys['ArrowDown']) iz += 1;
     if (keys['KeyA'] || keys['ArrowLeft']) ix -= 1;
@@ -2367,7 +2953,7 @@ function animate(){
   [player.position.x, player.position.z] = collide(player.position.x, player.position.z);
   player.rotation.y = pState.facing;
 
-  if ((keys['Space']) && pState.grounded && !activeNpc && !introMode){
+  if ((keys['Space']) && pState.grounded && !activeNpc && !introMode && !galleryOpen){
     pState.vy = 7.2; pState.grounded = false;
   }
   if (!pState.grounded){
@@ -2408,6 +2994,14 @@ function animate(){
     P.head.position.y = P.headBaseY + idle*0.025;
     if (P.cape) P.cape.rotation.x = 0.08;
     if (P.ahoge) P.ahoge.rotation.z = 0.5 + Math.sin(t*3)*0.08;
+  }
+
+  // ⚔️ 공격 스윙 (짧게 오른팔 오버라이드)
+  if (pState.attackT > 0){
+    pState.attackT -= dt;
+    const ap = 1 - Math.max(0, pState.attackT) / 0.3;
+    P.armR.rotation.x = -2.5 + ap * 3.1;
+    P.armR.rotation.z = -0.35;
   }
 
   /* ── 내 이름표 & 원격 플레이어 ── */
@@ -2502,8 +3096,21 @@ function animate(){
     n.mark.rotation.y = t*2;
     if (near && d < bestD){ bestD = d; nearNpc = n; }
   });
-  interactEl.classList.toggle('show', !!nearNpc && !activeNpc);
-  talkBtn.classList.toggle('show', !!nearNpc && !activeNpc);
+  // 갤러리 존 근접 판정
+  nearGallery = null;
+  if (!nearNpc){
+    Object.entries(GALLERY_ZONES).forEach(([key, z2]) => {
+      if (Math.hypot(player.position.x - z2.x, player.position.z - z2.z) < 4.6) nearGallery = key;
+    });
+  }
+  const showPrompt = (!!nearNpc || !!nearGallery) && !activeNpc && !galleryOpen;
+  if (showPrompt){
+    interactEl.innerHTML = nearNpc
+      ? '<b>E</b> 키를 눌러 대화하기'
+      : `<b>E</b> 키를 눌러 ${GALLERY_ZONES[nearGallery].title} 보기`;
+  }
+  interactEl.classList.toggle('show', showPrompt);
+  talkBtn.classList.toggle('show', showPrompt);
   if (activeNpc && Math.hypot(player.position.x - activeNpc.x, player.position.z - activeNpc.z) > 5) closeDialog();
 
   /* ── 환경 애니메이션 ── */
@@ -2575,6 +3182,69 @@ function animate(){
     b.g.userData.wl.rotation.z = flap;
     b.g.userData.wr.rotation.z = -flap;
   });
+
+  // 👾 슬라임 AI (통통 배회 + 피격/처치/리스폰)
+  slimes.forEach(s => {
+    if (!s.alive){
+      s.deadT += dt;
+      s.g.scale.setScalar(Math.max(0.001, 1 - s.deadT * 4));
+      if (s.deadT >= s.respawn){
+        const [nx, nz] = slimeSpawnSpot();
+        s.g.position.set(nx, 0, nz);
+        s.tx = nx; s.tz = nz;
+        s.hp = s.maxHp; s.alive = true;
+        s.g.scale.setScalar(0.001); s.deadT = 0;
+      }
+      return;
+    }
+    if (s.g.scale.x < 1) s.g.scale.setScalar(Math.min(1, s.g.scale.x + dt * 3));
+    s.retarget -= dt;
+    let ddx = s.tx - s.g.position.x, ddz = s.tz - s.g.position.z;
+    let dd = Math.hypot(ddx, ddz);
+    if (s.retarget <= 0 || dd < 0.4){
+      const a = Math.random()*Math.PI*2, r = 2 + Math.random()*4.5;
+      let nx = s.g.position.x + Math.cos(a)*r;
+      let nz = s.g.position.z + Math.sin(a)*r;
+      const cd = Math.hypot(nx, nz);
+      if (cd < 25){ nx *= 27/cd; nz *= 27/cd; }
+      if (cd > 40){ nx *= 38/cd; nz *= 38/cd; }
+      s.tx = nx; s.tz = nz;
+      s.retarget = 2.5 + Math.random()*3;
+      ddx = s.tx - s.g.position.x; ddz = s.tz - s.g.position.z; dd = Math.hypot(ddx, ddz);
+    }
+    const hop = Math.abs(Math.sin(t*4 + s.phase));
+    if (dd > 0.1){
+      const spd = 1.15 * hop;
+      s.g.position.x += ddx/dd * spd * dt;
+      s.g.position.z += ddz/dd * spd * dt;
+      s.g.rotation.y += (Math.atan2(ddx, ddz) - s.g.rotation.y) * Math.min(1, dt*5);
+    }
+    s.g.position.x += s.kx * dt;
+    s.g.position.z += s.kz * dt;
+    s.kx *= Math.max(0, 1 - dt*6);
+    s.kz *= Math.max(0, 1 - dt*6);
+    s.g.position.y = hop * 0.35;
+    s.body.scale.set(1 + (1-hop)*0.14, 0.78 - (1-hop)*0.11, 1 + (1-hop)*0.14);
+    if (s.flash > 0) s.flash = Math.max(0, s.flash - dt*4);
+    s.bodyMat.color.copy(s.baseColor).lerp(WHITE_C, s.flash * 0.8);
+  });
+
+  // 💥 데미지/EXP 텍스트 & 레벨업 링
+  for (let i = floatTexts.length - 1; i >= 0; i--){
+    const ft = floatTexts[i];
+    const age = t - ft.start;
+    ft.sp.position.y += dt * 1.15;
+    ft.sp.material.opacity = age < 0.12 ? age/0.12 : Math.max(0, 1 - (age - 0.55)/0.55);
+    if (age > 1.15){ scene.remove(ft.sp); floatTexts.splice(i, 1); }
+  }
+  for (let i = levelRings.length - 1; i >= 0; i--){
+    const lr = levelRings[i];
+    const age = t - lr.start;
+    const s2 = 1 + age * 5;
+    lr.ring.scale.set(s2, s2, 1);
+    lr.ring.material.opacity = Math.max(0, 0.95 - age * 1.2);
+    if (age > 0.85){ scene.remove(lr.ring); levelRings.splice(i, 1); }
+  }
 
   clouds.forEach(c => {
     c.position.x += c.userData.speed * dt;
